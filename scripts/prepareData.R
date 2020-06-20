@@ -1,5 +1,5 @@
 # Prepare the grazing activity (pellet) and buloke sapling data
-# Jan 2018
+# Updated June 2020
 # David Duncan
 
 # Introductory notes ----
@@ -13,8 +13,10 @@ pacman::p_load(readxl, tidyverse, RcppRoll)
 
 ## Read in Excel files ----
 
+path_to_data <- "data/browse_6_june2020.xlsx"
+
 # site level info
-sites <- read_excel("browse_20180119.xlsx", sheet = "Sites")
+sites <- read_excel(path_to_data, sheet = "Sites")
 
 names(sites)[names(sites)=="T0_Seedling_plant _date"] <- 'T0_date'  # replace cumbersome name
 
@@ -26,7 +28,7 @@ sites <- sites %>% rename(context = Habitat,
 # organise the site level data ----
 
 # point quadrats (200 hits)
-site_lf_cover <- read_excel("browse_20180119.xlsx", sheet = "T0_Pointing_DATA")
+site_lf_cover <- read_excel(path_to_data, sheet = "T0_Pointing_DATA")
 
 site_lf_cover <- site_lf_cover %>%
   group_by(Site) %>% 
@@ -36,13 +38,13 @@ site_lf_cover <- site_lf_cover %>%
   rename(site = Site)
 
 
-site_summ <- left_join(site_lf_cover[ , 1:16], sites[ , c(1:6, 20:26)], by = "site")
+site_summ <- left_join(site_lf_cover[ , 1:16], sites[ , c(1:6, 20:25)], by = "site")
 
 # that's it for
 rm(site_lf_cover)
 
 # buloke sapling data
-read_saplings <- read_excel("browse_20180119.xlsx", 
+read_saplings <- read_excel(path_to_data, 
                             sheet = "ALL_Seed_DATA",
                             col_types = c(rep("guess",10),"text", "text", 
                                           rep("guess",25), rep("text",2),
@@ -58,8 +60,8 @@ read_saplings <- read_saplings[read_saplings$uniqID != "7.O46" | read_saplings$u
 
 # join the sapling data to site data, leaving behind surplus fields
 
-saplings <- merge(read_saplings[,c(1, 4:7, 11, 23:25, 38)], 
-                  sites[c(1, 6, 8, 9, 11, 13, 16)],
+saplings <- left_join(read_saplings[,c(1, 4:7, 11, 23:25, 40)], 
+                  sites[c(1, 6, 8:11, 13,14, 16)],
                   by = "site")
 
 rm(read_saplings)
@@ -74,28 +76,37 @@ rm(read_saplings)
 saplings$elapsedDays <- 0 # create vector
 # fill with series of ifelse() statements (thanks Nick Golding)
 saplings$elapsedDays <- ifelse(saplings$Time == 1, 
-                               saplings$T1_survey_date - saplings$T0_date,
+                               saplings$T1_census_date - saplings$T0_date,
                                saplings$elapsedDays)
 saplings$elapsedDays <- ifelse(saplings$Time == 2, 
-                               saplings$T2_survey_date - saplings$T0_date,
+                               saplings$T2_census_date - saplings$T0_date,
                                saplings$elapsedDays)
 saplings$elapsedDays <- ifelse(saplings$Time == 3, 
-                               saplings$T3_survey_date - saplings$T0_date,
+                               saplings$T3_census_date - saplings$T0_date,
                                saplings$elapsedDays)
 saplings$elapsedDays <- ifelse(saplings$Time == 4, 
-                               saplings$T4_survey_date - saplings$T0_date,
+                               saplings$T4_census_date - saplings$T0_date,
+                               saplings$elapsedDays)
+saplings$elapsedDays <- ifelse(saplings$Time == 5, 
+                               saplings$T5_census_date - saplings$T0_date,
+                               saplings$elapsedDays)
+saplings$elapsedDays <- ifelse(saplings$Time == 6, 
+                               saplings$T6_census_date - saplings$T0_date,
                                saplings$elapsedDays)
 
+
+
 # Rationalise the date fields since the data are unique sapling x time combinations
-saplings <-
+saplings <- saplings %>% 
   mutate(
-    saplings,
     date = case_when(
       Time == 0 ~ T0_date, 
-      Time == 1 ~ T1_survey_date, 
-      Time == 2 ~ T2_survey_date,
-      Time == 3 ~ T3_survey_date,
-      Time == 4 ~ T4_survey_date
+      Time == 1 ~ T1_census_date, 
+      Time == 2 ~ T2_census_date,
+      Time == 3 ~ T3_census_date,
+      Time == 4 ~ T4_census_date,
+      Time == 5 ~ T5_census_date,
+      Time == 6 ~ T6_census_date
     )
   )
 
@@ -163,8 +174,8 @@ saplings_surv <- saplings %>%
 # lag() in the prev_browse above looks for browsed in previous time step, not current! 
 
 
-# reintroduce site data after having attached the PCA variables via `Visualize Site Variation. Rmd`
-more_site_vars <- readRDS('site_variables_pca.RDS')
+# reintroduce site data after having attached the PCA variables via `Visualize Site Variation.Rmd`
+more_site_vars <- readRDS('data/site_variables_pca.RDS')
 
 more_site_vars <- rename(more_site_vars, site = Site) %>% 
   mutate(site = as.numeric(site))
@@ -184,7 +195,7 @@ browse_alt<- left_join(x = browse_alt,
 ## Prepare the pellet data ----
 # herbivore poo data - to begin these data are per pellet group identified within each plot x time, so some level of summarising will be necessary.
 
-pellets <- read_excel("browse_20180119.xlsx", sheet = "ALL_P_DATA")
+pellets <- read_excel(path_to_data, sheet = "ALL_P_DATA")
 
 pellets <- rename(pellets, browser = Species,
                   site = Site) #%>% 
@@ -456,7 +467,7 @@ browse_alt <- left_join(browse_alt,
 save(plt_plot, file = 'pellets.Rdata')
 
 # remove the objects not required in the global environment ----
-rm(ids, lgm_density, sites, site_lf_cover, site_summ, more_site_vars, read_saplings, plt_plot, pellets, link_plt, final_ht, get_final_ht, roo_density)
+rm(ids, lgm_density, sites, site_summ, more_site_vars, plt_plot, pellets, link_plt, final_ht, get_final_ht, roo_density)
 # AWAP_sm, dfs, n_days, bom_1, bom_10, bom_2, bom_3, bom_4, bom_5, bom_6, bom_8, bom_9,
 
 # save the remaining items in workspace for the browsing analysis ----
