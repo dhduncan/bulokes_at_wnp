@@ -20,7 +20,8 @@ sites <- read_excel(path_to_data, sheet = "Sites")
 
 names(sites)[names(sites)=="T0_Seedling_plant _date"] <- 'T0_date'  # replace cumbersome name
 
-sites <- sites %>% rename(context = Habitat,
+sites <- sites %>% 
+  rename(context = Habitat,
                           site = Site) # dplyr alternative to the above, change Habitat for 'context'
 
 #sites$Site <- factor(sites$Site)
@@ -47,10 +48,10 @@ rm(site_lf_cover)
 read_saplings <- read_excel(path_to_data, 
                             sheet = "ALL_Seed_DATA",
                             col_types = c(rep("guess",10),"text", "text", 
-                                          rep("guess",25), rep("text",2),
-                                          "guess")) 
+                                          rep("guess",17))) 
 
-read_saplings <- read_saplings %>% rename(site = Site)
+read_saplings <- read_saplings %>% 
+  select(site = 1, 4:7, 11, 13, 23, 24, 29)
 
 # Further prep of the buloke sapling data ----
 
@@ -60,7 +61,7 @@ read_saplings <- read_saplings[read_saplings$uniqID != "7.O46" | read_saplings$u
 
 # join the sapling data to site data, leaving behind surplus fields
 
-saplings <- left_join(read_saplings[,c(1, 4:7, 11, 23:25, 40)], 
+saplings <- left_join(read_saplings, 
                   sites[c(1, 6, 8:11, 13,14, 16)],
                   by = "site")
 
@@ -362,7 +363,7 @@ browse_alt <- left_join(browse_alt,
 ids <- unique(saplings$uniqID)
 get_final_ht <- function(id, df) {
   
-  ht <- df[df$uniqID == id, "HtCM"]
+  ht <- as_vector(df[df$uniqID == id, "HtCM"])
   ht <- na.omit(ht)
   
   if (length(ht) <= 1) {
@@ -467,7 +468,7 @@ browse_alt <- left_join(browse_alt,
 save(plt_plot, file = 'pellets.Rdata')
 
 # remove the objects not required in the global environment ----
-rm(ids, lgm_density, sites, site_summ, more_site_vars, plt_plot, pellets, link_plt, final_ht, get_final_ht, roo_density)
+rm(ids, lgm_density, sites, site_summ, plt_plot, pellets, link_plt, final_ht, get_final_ht, roo_density)
 # AWAP_sm, dfs, n_days, bom_1, bom_10, bom_2, bom_3, bom_4, bom_5, bom_6, bom_8, bom_9,
 
 # save the remaining items in workspace for the browsing analysis ----

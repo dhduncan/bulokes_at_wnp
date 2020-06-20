@@ -18,7 +18,7 @@ tinyContext = c("Buloke woodland" = "Buloke\nWoodland",
                 "Wattle dune" = "adj.\nWattle Dune",
                 "Mallee" = "adj. Mallee\nWoodland")
 
-pdf(file="heightChangeSummary.pdf", width = 7.32, height = 1.35)
+#pdf(file="heightChangeSummary.pdf", width = 7.32, height = 1.35)
 
 saplings_summary %>% group_by(Treat, context, site) %>% 
   summarise(ht_change = mean(ht_change, na.rm = TRUE)) %>% 
@@ -49,4 +49,4 @@ ggplot(aes(x = Treat, y = ht_change)) +
    plot.margin = margin(.1, .1, .1, .1),
  )
 
-dev.off()  
+#dev.off()  
