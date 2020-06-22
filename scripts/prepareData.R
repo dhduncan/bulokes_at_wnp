@@ -48,10 +48,10 @@ rm(site_lf_cover)
 read_saplings <- read_excel(path_to_data, 
                             sheet = "ALL_Seed_DATA",
                             col_types = c(rep("guess",10),"text", "text", 
-                                          rep("guess",17))) 
+                                          rep("guess",25), "text")) 
 
 read_saplings <- read_saplings %>% 
-  select(site = 1, 4:7, 11, 13, 23, 24, 29)
+  select(site = 1, 4:7, 11, 13, 23, 24, 38)
 
 # Further prep of the buloke sapling data ----
 
@@ -393,7 +393,6 @@ saplings_summary <- saplings %>%
     browsed = last(now_browse)) 
 
 saplings_summary <-  left_join(saplings_summary, final_ht, by = "uniqID")
-
 
 saplings_summary <- saplings_summary %>% 
   mutate(
