@@ -82,7 +82,7 @@ saplings_summary %>% group_by(Treat, context, site) %>%
   )
 
 saplings_summary %>% group_by(Treat, context, site) %>% 
-  summarise(dm_change = mean(dm_change, na.rm = TRUE)) %>% 
+  #summarise(dm_change = mean(dm_change, na.rm = TRUE)) %>% 
   ggplot(aes(x = Treat, y = dm_change)) + 
   geom_hline(yintercept = 0, colour = "dark grey") +
   #geom_boxplot(show.legend = FALSE) +
