@@ -13,7 +13,7 @@ pacman::p_load(readxl, tidyverse, RcppRoll)
 
 ## Read in Excel files ----
 
-path_to_data <- "data/browse_6_june2020.xlsx"
+path_to_data <- "data/browse_23_dec2020.xlsx"
 
 # site level info
 sites <- read_excel(path_to_data, sheet = "Sites")
@@ -34,7 +34,7 @@ site_lf_cover <- read_excel(path_to_data, sheet = "T0_Pointing_DATA")
 site_lf_cover <- site_lf_cover %>%
   group_by(Site) %>% 
   summarise_at(
-    vars(Bare_ground:Tree), funs(cov = sum)
+    vars(Bare_ground:Tree), list(cov = sum)
   ) %>% 
   rename(site = Site)
 
@@ -48,7 +48,7 @@ rm(site_lf_cover)
 read_saplings <- read_excel(path_to_data, 
                             sheet = "ALL_Seed_DATA",
                             col_types = c(rep("guess",10),"text", "text", 
-                                          rep("guess",25), "text")) 
+                                          rep("guess",25), "text", "text")) 
 
 read_saplings <- read_saplings %>% 
   select(site = 1, 4:7, 11, 13, 23, 24, 38)
@@ -62,7 +62,7 @@ read_saplings <- read_saplings[read_saplings$uniqID != "7.O46" | read_saplings$u
 # join the sapling data to site data, leaving behind surplus fields
 
 saplings <- left_join(read_saplings, 
-                  sites[c(1, 6, 8:11, 13,14, 16)],
+                  sites[c(1, 6, 8:11, 13,14, 16, 17)],
                   by = "site")
 
 rm(read_saplings)
@@ -94,6 +94,9 @@ saplings$elapsedDays <- ifelse(saplings$Time == 5,
 saplings$elapsedDays <- ifelse(saplings$Time == 6, 
                                saplings$T6_census_date - saplings$T0_date,
                                saplings$elapsedDays)
+saplings$elapsedDays <- ifelse(saplings$Time == 7, 
+                               saplings$T7_census_date - saplings$T0_date,
+                               saplings$elapsedDays)
 
 
 
@@ -107,7 +110,8 @@ saplings <- saplings %>%
       Time == 3 ~ T3_census_date,
       Time == 4 ~ T4_census_date,
       Time == 5 ~ T5_census_date,
-      Time == 6 ~ T6_census_date
+      Time == 6 ~ T6_census_date,
+      Time == 7 ~ T7_census_date
     )
   )
 
@@ -223,7 +227,7 @@ plt_plot <- pellets %>%
          tPlot = paste0(Transect, ".", Plot)) # add an identifier to enable join of pellet and sapling info
 
 # join the site information to the pellet data
-plt_plot <- left_join(plt_plot, sites[ , c(1,6)], by = "site")
+plt_plot <- left_join(plt_plot, sites[ , c(1,5,6, 19:26)], by = "site")
 
 #plt_plot <- left_join(plt_plot, site_lf_cover, by = 'Site')
 

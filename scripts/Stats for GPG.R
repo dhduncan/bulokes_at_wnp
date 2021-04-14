@@ -29,11 +29,19 @@ gpg_stats <- saplings_summary %>% group_by(Treat, context) %>%
   m_dm_50y = round(1-ecdf(dm_50y)(35),2)
   )
 
+surv_summ <- saplings_summary %>% 
+  group_by(Treat, context, site) %>% 
+  summarise(n = n(),
+            surv = round((1 - (sum(dead)/n))*100, 1)) %>% 
+  group_by(Treat, context) %>% 
+  summarise(n_sites = n(),
+            m_surv = round(mean(surv), 1))
+
 library(ggplot2)
 
 gpg_stats %>% 
  # filter(dead != 1) %>%
-ggplot(aes(ht_20y)) + 
+ggplot(aes(m_dm_50y)) + 
   geom_vline(xintercept=130) + 
   geom_hline(yintercept = 1) +
   geom_step(stat = "ecdf", colour = "red") +
