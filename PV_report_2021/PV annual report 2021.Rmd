@@ -1,0 +1,74 @@
+---
+title: "RPP 1819 P12: Breaking Buloke Woodlands out of the Browse trap"
+subtitle: "Report to Parks Victoria"
+author: "David Duncan and Ami Bennett"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    prettydoc::html_pretty:
+        theme: cayman
+        highlight: github
+bibliography: refs.bib  
+csl: AJBish.csl 
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, echo=FALSE, results='hide', comment=NA, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# packages ----
+library(dplyr)
+library(openxlsx)
+library(tidyr)
+library(ggplot2)
+
+
+```
+
+# Executive Summary
+
+This project is investigating the potential to continue scaled-down
+monitoring of the growth and survival of hand-planted buloke
+(*Allocasuarina luehmannii*) seedlings at Wyperfeld National Park.
+
+The most recently funded phase of the project ran to June 2020, however
+due to the chaotic situation of the Covid19 pandemic, no final report
+was delivered.
+
+@hauser2014
+
+## Outputs to date
+
+@bennett2020
+
+An accessible guide to restoration of Buloke Woodlands in the semi-arid part of their range [@duncan2021] (defined that way given that Macaulay's [-@macaulay2003] guide remains an excellent reference for the more southern part of the distribution.
+
+## Evolution of field experiment
+
+We made a number of important changes to the field experiment.
+
+2019 -
+
+2020 -
+
+# Method
+
+
+
+# Results
+
+
+# Discussion
+
+
+# Outlook
+
+Matt Whitney MSc (supported by PV, Bill Borthwick, Botany Foundation and )
+
+Review paper
+
+Rabbit model
+
+GA discussion, referred by Brendan Rodgers
+
+# References

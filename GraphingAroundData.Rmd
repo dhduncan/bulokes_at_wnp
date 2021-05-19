@@ -364,13 +364,22 @@ ggplot(data = plts,
 # Influence of observer by site by time? ----
 In the field we worried about the possibility of observer differences in the number of pellets observed. Here's what the data looks like.
 ```{r Observer by site by time, eval=FALSE}
-ggplot(data = plts, mapping = aes(x = factor(Time), y = nPellets+0.5, 
-                                  fill = obs)) + 
-  geom_boxplot() + 
-  facet_wrap(context~site) + 
-  scale_y_log10()
+ggplot(data = filter(plt_plot, browser == "Roo"), 
+                     aes(x = factor(Time), y = (nPellets+0.01)/days, fill = obs)) +
+         geom_boxplot() +
+         facet_wrap(site~.) +
+         scale_y_log10()
 ```
 **I turned this one off (eval = FALSE)**
+
+```{r Observer by site by time, eval=FALSE}
+ggplot(data = filter(plt_plot, 
+                     browser == "Roo" & Time==6),
+                     aes(x = Transect, y = Plot)) +
+         geom_point(aes(col = obs, size = nPellets+0.01, alpha=0.4)) +
+  geom_text(aes(label = nPellets)) +
+         facet_wrap(context~site)
+```
 
 # Browser activity versus browsing and mortality 
 Is activity as represented by dung correlated with browsing and death due to browsing?
