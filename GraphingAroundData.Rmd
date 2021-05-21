@@ -298,7 +298,7 @@ for(s in unique(saplings$site)) {
   checkSite <- saplings[saplings$site == s, ]
   
   png(paste("seedlingHistories/growth_T6_Site_",s,".png",sep = ""), width = 1100, height = 900)
-  print(ggplot(checkSite[!is.na(checkSite$HtCM),],aes(x=Time, y = HtCM)) +  # note the call to !is.na() so that lines join across NA gaps.
+  print(ggplot(checkSite[!is.na(checkSite$HtCM),],aes(x=elapsedDays, y = HtCM)) +  # note the call to !is.na() so that lines join across NA gaps.
           geom_line(color="grey") + 
           geom_point(aes(colour = state, shape = factor(Dead)), size=2) +
           scale_shape_manual(values = c(19, 8)) +

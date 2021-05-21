@@ -1,0 +1,118 @@
+---
+title: "RPP 1819 P12: Breaking Buloke Woodlands out of the Browse trap"
+subtitle: "Report to Parks Victoria"
+author: "David Duncan and Ami Bennett"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    prettydoc::html_pretty:
+        theme: cayman
+        highlight: github
+bibliography: refs.bib  
+csl: AJBish.csl 
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, echo=FALSE, results='hide', comment=NA, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# packages ----
+library(dplyr)
+library(openxlsx)
+library(tidyr)
+library(ggplot2)
+
+path_to_data <- "data/NESP1_2_2_buloke_survival_23_dec2020.xlsx"
+
+```
+
+# Executive Summary
+
+This project is investigating the potential to continue scaled-down
+monitoring of the growth and survival of hand-planted buloke
+(*Allocasuarina luehmannii*) seedlings at Wyperfeld National Park.
+
+The proposal addresses key questions (numbered 3 and 4) identified by Hauser and Lahoz-Monfort [-@hauser2014] in their analysis of Adaptive Management of Grazing Pressure on Pine-Buloke Vegetation at Wyperfeld National Park. Specifically:
+
+3.	Under what conditions (fire, rainfall, grazing) can Pine and Buloke seedlings escape grazing pressure?
+4.	Under what conditions (fire, rainfall, grazing, age and size) can Pine and Buloke individuals reach reproductive maturity?
+
+We will generate invaluable data on seedling survival and growth required to validate a survival model built on data from Bennett et al, but also to develop estimates of time required for seedlings to escape from vulnerability to browsing damage, sometimes called ‘escape height’.
+
+This project builds on the successful large scale buloke seedling survival experiment at Wyperfeld National Park [@bennett2020]. The objectives of this phase of the project are to:
+
+1.	Identify patterns of established seedling survival, browsing damage, and growth rates as a function of landscape position and herbivore access.
+2.	Determine if a cheaper measure of herbivore activity can replace the measure used in the first phase of the survival experiment . 
+3.	Report on the suitability of the various methods for future field experiments or management applications where indices of herbivore activity are required.
+
+The most recently funded phase of the project ran to June 2020, however
+due to the chaotic situation of the Covid19 pandemic, no final report
+was delivered.
+
+
+
+## Outputs to date
+
+@bennett2020
+
+An accessible guide to restoration of Buloke Woodlands in the semi-arid part of their range [@duncan2021] (defined that way given that Macaulay's [-@macaulay2003] guide remains an excellent reference for the more southern part of the distribution.
+
+## Evolution of field experiment
+
+We made a number of important changes to the field experiment.
+
+2019 -
+
+2020 -
+
+# Method
+
+```{r}
+load("data/browseDFs.Rdata")
+load("data/herb_activity.Rdata")
+
+
+```
+
+
+```{r extract calibration subsets}
+accumm_calib <- saplings_surv %>%
+  group_by(site, Time, Treat, context, link) %>% 
+  filter(Time == 6) %>% 
+  summarise(
+    accumm_days = first(days),
+    lgm_15.75m2 = first(Lagomrph_site_mean),
+    roo_15.75m2 = first(Roo_site_mean),
+    lgm_0.1m2_yr = first(m_nP_0.1m2_yr),
+    lgm_0.1m2_yr_2 = ((lgm_15.75m2/157.5)/accumm_days)*365,
+    roo_0.1m2_yr = ((roo_15.75m2/157.5)/accumm_days)*365
+  )
+```
+
+
+
+# Results
+
+
+```{r}
+plt_compare <- ggplot(link_plt, aes(Time, d_rab_mtz)) + 
+  geom_point() + 
+  facet_wrap(~site)
+```
+
+
+
+# Discussion
+
+
+# Outlook
+
+Matt Whitney MSc (supported by PV, Bill Borthwick, Botany Foundation and )
+
+Review paper
+
+Rabbit model
+
+GA discussion, referred by Brendan Rodgers
+
+# References

@@ -9,16 +9,18 @@ rm(list=ls())
 
 # Load required packages into session ----
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(readxl, tidyverse, RcppRoll)
+pacman::p_load(openxlsx, tidyverse, RcppRoll)
 
 ## Read in Excel files ----
 
-path_to_data <- "data/browse_23_dec2020.xlsx"
+path_to_data <- "data/NESP1_2_2_buloke_survival_23_dec2020.xlsx"
+
+# organise the site level data ----
 
 # site level info
-sites <- read_excel(path_to_data, sheet = "Sites")
+sites <- read.xlsx(path_to_data, sheet = "Sites")
 
-names(sites)[names(sites)=="T0_Seedling_plant _date"] <- 'T0_date'  # replace cumbersome name
+names(sites)[names(sites)=="T0_seedling_plant_date"] <- 'T0_date'  # replace cumbersome name
 
 sites <- sites %>% 
   rename(context = Habitat,
@@ -26,10 +28,9 @@ sites <- sites %>%
 
 #sites$Site <- factor(sites$Site)
 
-# organise the site level data ----
 
 # point quadrats (200 hits)
-site_lf_cover <- read_excel(path_to_data, sheet = "T0_Pointing_DATA")
+site_lf_cover <- read.xlsx(path_to_data, sheet = "T0_Pointing_DATA")
 
 site_lf_cover <- site_lf_cover %>%
   group_by(Site) %>% 
@@ -45,10 +46,13 @@ site_summ <- left_join(site_lf_cover[ , 1:16], sites[ , c(1:6, 20:25)], by = "si
 rm(site_lf_cover)
 
 # buloke sapling data
-read_saplings <- read_excel(path_to_data, 
-                            sheet = "ALL_Seed_DATA",
-                            col_types = c(rep("guess",10),"text", "text", 
-                                          rep("guess",25), "text", "text")) 
+read_saplings <- read.xlsx(path_to_data, 
+                            sheet = "ALL_Seed_DATA") %>% 
+  mutate("Dead" = as.numeric(Dead),
+          "HtCM" = as.numeric(HtCM),
+          "StDMM" = as.numeric(StDMM),
+         "Browsed" = as.numeric(Browsed)
+  )
 
 read_saplings <- read_saplings %>% 
   select(site = 1, 4:7, 11, 13, 23, 24, 38)
@@ -66,6 +70,7 @@ saplings <- left_join(read_saplings,
                   by = "site")
 
 rm(read_saplings)
+
 
 # encode factors
 #for (i in 1:3) {  # first three variables are factors
@@ -180,7 +185,7 @@ saplings_surv <- saplings %>%
 
 
 # reintroduce site data after having attached the PCA variables via `Visualize Site Variation.Rmd`
-more_site_vars <- readRDS('data/site_variables_pca.RDS')
+more_site_vars <- readRDS('data/site_variables_pca.rds')
 
 more_site_vars <- rename(more_site_vars, site = Site) %>% 
   mutate(site = as.numeric(site))
@@ -200,22 +205,21 @@ browse_alt<- left_join(x = browse_alt,
 ## Prepare the pellet data ----
 # herbivore poo data - to begin these data are per pellet group identified within each plot x time, so some level of summarising will be necessary.
 
-pellets <- read_excel(path_to_data, sheet = "ALL_P_DATA")
+accum <- read.xlsx(path_to_data, sheet = "ALL_P_DATA")
 
-pellets <- rename(pellets, browser = Species,
+accum <- rename(accum, browser = Species,
                   site = Site) #%>% 
-  #mutate_if(is.character, factor) %>% 
-  #mutate_at(vars(Site:Plot, Time), funs(factor))
 
 # recode_factor(browser, WGK = "Roo", Rabbit = "Lago")
-pellets$browser = factor(pellets$browser, levels = c("Goat", "Rabbit", "WGK"), labels = c("Goat", "Lagomrph", "Roo"))
+accum$browser = factor(accum$browser, levels = c("Goat", "Rabbit", "WGK"), labels = c("Goat", "Lagomrph", "Roo"))
 
 # remove instances of NA where the pellet plot couldn't be relocated and had to be replaced (n=3)
-pellets <- pellets[ !is.na(pellets$nPellets), ]
+accum <- accum[ !is.na(accum$nPellets), ]
 
 # Summarise the pellet data to plot x time level for graphing and model building
+
 # This version retains different pellet groups via uniqID
-plt_plot <- pellets %>% 
+plt_plot <- accum %>% 
   dplyr::select(-c(DateTprevious, DateTcurrent, rDayLog, pgID)) %>% 
   group_by(site, Transect, Plot, Time, browser, uniqID) %>%
   summarise(nGroups = max(nGroups),
@@ -235,13 +239,40 @@ plt_plot <- left_join(plt_plot, more_site_vars[1:16], by = 'site')
 
 # link site average nPellets per browser to sapling dataset ----
 
-link_plt <- plt_plot %>% group_by(site, link, browser) %>% 
+link_plt <- filter(plt_plot, !is.na(browser)) %>% 
+  group_by(site, link, browser) %>% 
   summarise(m_rPellets = mean(rPellets)) %>% 
   spread(key = browser, value = m_rPellets) %>% 
   group_by(site) %>% 
   mutate_at(
     vars(Goat:Roo), funs(site_mean = round(mean(., na.rm = TRUE), 4))
   ) 
+
+## introduce standing crop data from latter years ----
+st_crop <- read.xlsx(path_to_data, sheet = "Standing_crop", cols = 1:9) %>% 
+  filter(site != "?") %>% 
+  mutate(site = as.numeric(site))
+
+# a mode function, thanks to https://stackoverflow.com/questions/2547402/how-to-find-the-statistical-mode
+mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+link_st_crop <- na.omit(st_crop) %>% 
+  group_by(site, Time) %>%
+  mutate(DO = if_else(Rabbit <= 40, Rabbit, NULL)) %>% #latrine
+  summarise(
+    n_quad = n(),
+    m_roo_nP_0.1m2_yr = mean(WGK, na.rm = TRUE),
+    m_rab_nP_0.1m2_yr = mean(((.6 * DO) * 1.298701), na.rm = TRUE), # latrine adjustment
+    #m_lgm_nP_0.1m2_yr = mean(Rabbit, na.rm = TRUE),
+    m_goat_nP_0.1m2_yr = mean(Goat, na.rm = TRUE),
+    obs = mode(Surveyor), # observer who did most of that site
+    d_rab_mtz = -0.0008 * m_rab_nP_0.1m2_yr^3 + 0.0565 * m_rab_nP_0.1m2_yr^2 + 0.86*m_rab_nP_0.1m2_yr,
+    roo_ha_nP = (m_roo_nP_0.1m2_yr / (0.1 * 365 * 493))*10000
+  ) %>%
+  mutate(link = paste0(site, ".",Time))
 
 roo_density <- filter(ungroup(plt_plot), browser == 'Roo') %>%
   group_by(context, site, Time, link) %>%
@@ -255,8 +286,8 @@ lgm_density <- filter(ungroup(plt_plot), browser == 'Lagomrph') %>%
   group_by(context, site, Time, link) %>%
   summarise(m_lgm_nP = mean(nPellets),
             days = mean(days)) %>% 
-  mutate(m_nP_0.1ha_yr = ((m_lgm_nP / days) / 157.5 * 365),
-         d_rab_mtz = -0.0008 * m_nP_0.1ha_yr^3 + 0.0565 * m_nP_0.1ha_yr^2 + 0.86*m_nP_0.1ha_yr)
+  mutate(m_nP_0.1m2_yr = ((m_lgm_nP / days) / 157.5 * 365),
+         d_rab_mtz = -0.0008 * m_nP_0.1m2_yr^3 + 0.0565 * m_nP_0.1m2_yr^2 + 0.86*m_nP_0.1m2_yr)
 
 link_plt <- left_join(link_plt, roo_density[-c(1:3)], by = 'link') #%>% 
   #mutate(Lagomrph_site_mean = if_else(is.na(Lagomrph_site_mean), 
@@ -276,7 +307,7 @@ link_plt <- left_join(link_plt, roo_density[-c(1:3)], by = 'link') #%>%
   #                            roo_ha_nPG)
   #)
   
-link_plt <- left_join(link_plt, select(ungroup(lgm_density), vars = -c(1:3,5)), by = 'link') 
+link_plt <- left_join(link_plt, select(ungroup(lgm_density), vars = -c(1:3,5,6)), by = 'link') 
   
 
 
@@ -419,10 +450,10 @@ browse_alt <- left_join(browse_alt,
                                            c(uniqID, start_dm)), 
                              by = 'uniqID')
 # # load BoM data ----
-# AWAP_sm <- read_excel("bom_data.xlsx", sheet = 7) # soil moisture data AWAP
+# AWAP_sm <- read.xlsx("bom_data.xlsx", sheet = 7) # soil moisture data AWAP
 # 
 # for(i in c(1:6,8:10)) { # for the rest the format is the same
-#   assign(paste0("bom_",i), read_excel("bom_data.xlsx", sheet = i))
+#   assign(paste0("bom_",i), read.xlsx("bom_data.xlsx", sheet = i))
 #   
 # }
 # 
@@ -468,11 +499,11 @@ browse_alt <- left_join(browse_alt,
 #   left_join(saplings_surv, dplyr::select(bom_filter, -station), by = "Date")
 
 # save the pellet data object ----
-save(plt_plot, file = 'pellets.Rdata')
+save(plt_plot, st_crop,  file = 'data/herb_activity.Rdata')
 
 # remove the objects not required in the global environment ----
-rm(ids, lgm_density, sites, site_summ, plt_plot, pellets, link_plt, final_ht, get_final_ht, roo_density)
+rm(ids, lgm_density, sites, site_summ, plt_plot, st_crop, accum, link_plt, final_ht, get_final_ht, roo_density)
 # AWAP_sm, dfs, n_days, bom_1, bom_10, bom_2, bom_3, bom_4, bom_5, bom_6, bom_8, bom_9,
 
 # save the remaining items in workspace for the browsing analysis ----
-save.image(file = "browseDFs.RData")
+save.image(file = "data/browseDFs.Rdata")
