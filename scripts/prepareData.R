@@ -13,7 +13,7 @@ pacman::p_load(openxlsx, tidyverse, RcppRoll)
 
 ## Read in Excel files ----
 
-path_to_data <- "data/NESP1_2_2_buloke_survival_23_dec2020.xlsx"
+path_to_data <- "data/NESP1_2_2_buloke_survival_dec2021.xlsx"
 
 # organise the site level data ----
 
@@ -66,7 +66,7 @@ read_saplings <- read_saplings[read_saplings$uniqID != "7.O46" | read_saplings$u
 # join the sapling data to site data, leaving behind surplus fields
 
 saplings <- left_join(read_saplings, 
-                  sites[c(1, 6, 8:11, 13,14, 16, 17)],
+                  sites[c(1, 6, 8:11, 13,14, 16, 17,18)],
                   by = "site")
 
 rm(read_saplings)
@@ -102,6 +102,9 @@ saplings$elapsedDays <- ifelse(saplings$Time == 6,
 saplings$elapsedDays <- ifelse(saplings$Time == 7, 
                                saplings$T7_census_date - saplings$T0_date,
                                saplings$elapsedDays)
+saplings$elapsedDays <- ifelse(saplings$Time == 8, 
+                               saplings$T8_census_date - saplings$T0_date,
+                               saplings$elapsedDays)
 
 
 
@@ -116,7 +119,8 @@ saplings <- saplings %>%
       Time == 4 ~ T4_census_date,
       Time == 5 ~ T5_census_date,
       Time == 6 ~ T6_census_date,
-      Time == 7 ~ T7_census_date
+      Time == 7 ~ T7_census_date,
+      Time == 8 ~ T8_census_date
     )
   )
 

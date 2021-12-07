@@ -19,7 +19,7 @@ Considerable pre-prep was done Excel-side by Ami, and myself, including coding u
 
 Data prep now occurs in `prepareData.R`, so we'll just read them in here with the following.
 ```{r}
-load("browseDFs.RData")
+load("data/browseDFs.Rdata")
 ```
 
 ## Seedling states and fates
@@ -275,7 +275,7 @@ for(s in unique(saplings$site)) {
   
   checkSite <- saplings[saplings$site == s, ]
   
-  png(paste("seedlingHistories/T6_site_",s,".png",sep = ""), width = 1100, height = 900)
+  png(paste("seedlingHistories/T8_site_",s,".png",sep = ""), width = 1100, height = 900)
   print(ggplot(checkSite,aes(x=Time, y = as.numeric(state))) + 
           geom_line(color="grey") + 
           geom_point(aes(colour = state, shape = factor(Dead)), size=2) +
@@ -292,12 +292,12 @@ for(s in unique(saplings$site)) {
 ```
 
 I have also done the same for the growth data over the course of the experiment.
-```{r make sapling growth summaries for each site and save for ron, eval=FALSE}
+```{r make sapling height summaries for each site and save for ron, eval=FALSE}
 for(s in unique(saplings$site)) {
   
   checkSite <- saplings[saplings$site == s, ]
   
-  png(paste("seedlingHistories/growth_T6_Site_",s,".png",sep = ""), width = 1100, height = 900)
+  png(paste("seedlingHistories/height_T8_Site_",s,".png",sep = ""), width = 1100, height = 900)
   print(ggplot(checkSite[!is.na(checkSite$HtCM),],aes(x=elapsedDays, y = HtCM)) +  # note the call to !is.na() so that lines join across NA gaps.
           geom_line(color="grey") + 
           geom_point(aes(colour = state, shape = factor(Dead)), size=2) +
@@ -312,7 +312,25 @@ for(s in unique(saplings$site)) {
 }
 ```
 
-
+```{r make sapling basal diameter summaries for each site and save for ron, eval=FALSE}
+for(s in unique(saplings$site)) {
+  
+  checkSite <- saplings[saplings$site == s, ]
+  
+  png(paste("seedlingHistories/diam_T8_Site_",s,".png",sep = ""), width = 1100, height = 900)
+  print(ggplot(checkSite[!is.na(checkSite$StDMM),],aes(x=elapsedDays, y = StDMM)) +  # note the call to !is.na() so that lines join across NA gaps.
+          geom_line(color="grey") + 
+          geom_point(aes(colour = state, shape = factor(Dead)), size=2) +
+          scale_shape_manual(values = c(19, 8)) +
+          scale_color_manual(values = stateCols) +
+          labs(title = paste("Site: ",s), y = "Seedling basal diameter (mm)", x = "Days since planting") +
+          facet_wrap(~uniqID, scales = "free_y")
+  )
+  
+  dev.off()
+  
+}
+```
 ```{r look at growth summaries}
 ggplot(saplings_summary, mapping = aes(x = ht_change, fill = Treat)) + geom_histogram() + facet_grid(Treat~context)
 ```
