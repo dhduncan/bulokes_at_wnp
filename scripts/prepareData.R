@@ -265,7 +265,7 @@ mode <- function(x) {
 
 link_st_crop <- na.omit(st_crop) %>% 
   group_by(site, Time) %>%
-  mutate(DO = if_else(Rabbit <= 40, Rabbit, NULL)) %>% #latrine
+  mutate(DO = if_else(Rabbit <= 40, Rabbit, as.character(NA))) %>% #latrine
   summarise(
     n_quad = n(),
     m_roo_nP_0.1m2_yr = mean(WGK, na.rm = TRUE),
