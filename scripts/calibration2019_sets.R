@@ -184,43 +184,4 @@ herbivore <- c("d_rab_mtz" =  "Lagomorph",
 
 save.image(file = "calibration2019.Rdata")
 
-# summary graph (now executed in Rmarkdown doc) ----
-# ggplot(w_comb_meth, aes(standing_crop+1e-3,accumulation+1e-3, 
-#                         color = context)) + 
-#   geom_point() + 
-#   geom_abline(intercept = 0, slope = 1) + 
-#   facet_wrap(~response, scales = "free", labeller = as_labeller(herbivore)) +
-#   labs(x = 'Density (animals / ha) estimated from standing crop method (after Mutze et al 2014)',
-#        y = 'Density (animals / ha) from accumulation\nmethod (i.e., Bennett et al 2019)') +
-#   scale_y_log10() + scale_x_log10() +
-#   theme(
-#     aspect.ratio = 1
-#   )
-#   
-
-library(arm)
-mod_scale <- lmer(standing_crop ~ scale(accumulation):response-1 + (1|site), 
-            data = w_comb_meth)
-# removing line 18 from the above seriously improves the residuals distribution
-
-library(MASS)
-
-
-
-mod <- lmer(log(standing_crop+0.0001) ~ accumulation:response-1 + (1|site), 
-                  data = w_comb_meth)
-
-lmod_n18 <- lm(standing_crop ~ accumulation:response-1, 
-             data = w_comb_meth[-18,])
-
-lmod <- lm(standing_crop ~ accumulation:response-1, 
-               data = w_comb_meth)
-
-
-lmod_cube <- lm(standing_crop^(1/3) ~ scale(accumulation):response-1, 
-           data = w_comb_meth[-18,])
-
-
-# a box cox transform factor? 
-bc <- boxcox(w_comb_meth$standing_crop ~ w_comb_meth$accumulation)
-(lambda <- bc$x[which.max(bc$y)])
+rm(list = ls())
