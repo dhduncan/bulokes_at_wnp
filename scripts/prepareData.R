@@ -265,7 +265,9 @@ mode <- function(x) {
 
 link_st_crop <- na.omit(st_crop) %>% 
   group_by(site, Time) %>%
-  mutate(DO = if_else(Rabbit <= 40, Rabbit, as.character(NA))) %>% #latrine
+  mutate(
+    #DO = NA,
+    DO = case_when(Rabbit <= 40 ~ Rabbit)) %>% #latrine
   summarise(
     n_quad = n(),
     m_roo_nP_0.1m2_yr = mean(WGK, na.rm = TRUE),
@@ -511,3 +513,4 @@ rm(ids, lgm_density, sites, site_summ, plt_plot, st_crop, accum, link_plt, final
 
 # save the remaining items in workspace for the browsing analysis ----
 save.image(file = "data/browseDFs.Rdata")
+
